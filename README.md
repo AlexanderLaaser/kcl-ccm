@@ -1,4 +1,4 @@
-# kcl-ccm
+# Using KCL for Crossplane compositions with kcl-ccm
 
 A CLI tool that scans a KCL package root and generates:
 
@@ -6,6 +6,41 @@ A CLI tool that scans a KCL package root and generates:
 2. **runtime-config.yaml** – Crossplane `DeploymentRuntimeConfig` with volume mounts
 
 This lets you mount your KCL files into the `package-runtime` container of a Crossplane KCL function with a single command.
+
+## Crossplane Composition Approaches
+
+Comparison of different ways to author Crossplane Compositions:
+
+| Criterion                     | Patch & Transform                     | Helm Template          | KCL in Composition            |
+| ----------------------------- | ------------------------------------- | ---------------------- | ----------------------------- |
+| **Loops & conditionals**      | ❌ Limited (Composition patches only) | ✅ Go templating       | ✅ Full KCL                   |
+| **Modularity**                | ❌ Monolithic YAML                    | ✅ Helm charts         | ✅ Separate modules/files     |
+| **Reusability**               | ❌ Copy-paste                         | ✅ Chart reuse         | ✅ Import across Compositions |
+| **Testability**               | ❌ Hard to unit-test                  | ⚠️ Chart tests         | ✅ `kcl run` locally          |
+| **Complex logic**             | ❌ Not designed for it                | ⚠️ Template complexity | ✅ KCL language               |
+| **No extra functions**        | ✅ Native Crossplane                  | ❌ function-helm       | ❌ function-kcl               |
+| **Readability (large specs)** | ⚠️ Verbose patches                    | ⚠️ Template mix        | ✅ Structured files           |
+| **Schema validation**         | ✅ XRD-driven                         | ⚠️ Chart values        | ✅ KCL schemas                |
+| **GitOps / same repo**        | ✅                                    | ✅                     | ✅                            |
+
+**Summary:** Patch & Transform is ok for simple, static compositions. Helm suits teams with existing charts. KCL Inline works for small, self-contained logic. **KCL + kcl-ccm** shines when you need modular KCL, loops/conditionals, local testing, and everything in one Git repo.
+
+### How to use KCL in Crossplane Compositions?
+
+| Criterion            | kcl-ccm              | KCL Inline             | OCI Registry                  | Git Source                  | Git-Sync Sidecar            |
+| -------------------- | -------------------- | ---------------------- | ----------------------------- | --------------------------- | --------------------------- |
+| Local development    | ✅                   | ✅                     | ❌ Needs `kcl mod pull`       | ❌ Needs network            | ❌ Needs network            |
+| Single repo          | ✅                   | ✅                     | ❌ Separate publish step      | ✅                          | ✅                          |
+| Reusability          | ✅                   | ❌ Per-Composition     | ✅ Chart/package reuse        | ✅ From repo                | ✅ From repo                |
+| Testability          | ✅ `kcl run` locally | ⚠️ Extract & test      | ⚠️ Chart tests                | ⚠️ Clone first              | ⚠️ Clone first              |
+| Readability          | ✅ Structured files  | ❌ Long inline strings | ✅ In package                 | ✅ In repo                  | ✅ In repo                  |
+| No credentials       | ✅                   | ✅                     | ❌ Registry login             | ❌ Private repo needs token | ❌ Private repo needs token |
+| No extra registry    | ✅                   | ✅                     | ❌ OCI registry required      | ✅                          | ✅                          |
+| No sidecar           | ✅                   | ✅                     | ✅                            | ✅                          | ❌ Sidecar container        |
+| No CI/CD for KCL     | ✅                   | ✅                     | ❌ `kcl mod push` in pipeline | ✅                          | ✅                          |
+| Offline / air-gapped | ✅                   | ✅                     | ❌ Registry access            | ❌ Git access               | ❌ Git access               |
+
+**Summary:** **KCL Inline** is simplest (no mounting, no extra infra) but not modular. **kcl-ccm** adds modularity while keeping the same benefits (single repo, no credentials, no registry, no sidecar). Use OCI or Git source if you prefer external packaging or need automatic updates from Git.
 
 ### Requirements
 
@@ -86,7 +121,7 @@ Only files with extensions `.k`, `.mod`, or `.lock` are included in the ConfigMa
 
 ## Example
 
-The `example/` directory contains a minimal KCL package and Crossplane configuration. Run:
+The `02_example/` directory contains a minimal KCL package and Crossplane configuration. Run:
 
 ```bash
 make test
