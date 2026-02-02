@@ -1,10 +1,6 @@
 # kcl-ccm
 
-KCL ConfigMap & Crossplane Mount – Tools for mounting KCL packages into Crossplane KCL function pods.
-
-## kcl-ccm
-
-A Bash CLI that scans a KCL package root and generates:
+A CLI tool that scans a KCL package root and generates:
 
 1. **kustomization.yaml** – ConfigMap definitions for each folder (root + subfolders)
 2. **runtime-config.yaml** – Crossplane `DeploymentRuntimeConfig` with volume mounts
